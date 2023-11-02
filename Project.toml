@@ -1,0 +1,17 @@
+name = "SparseSparse"
+uuid = "0b78850f-dddf-4457-bd6b-a02e26699dc0"
+authors = ["Sébastien Loisel <sl398@hw.ac.uk>"]
+version = "1.0.0-DEV"
+
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
