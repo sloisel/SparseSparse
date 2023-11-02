@@ -188,7 +188,7 @@ Base.:\\(A::SparseMatrixCSC, B::SparseMatrixCSC) = Factorization(A)\\B
 """
 Base.:\(A::SparseMatrixCSC, B::SparseMatrixCSC) = Factorization(A)\B
 """
-Base.:\\(A::SparseMatrixCSC{Tv,Ti}, B::SparseVector) = Factorization(A)\\B
+Base.:\\(A::SparseMatrixCSC, B::SparseVector) = Factorization(A)\\B
 """
 Base.:\(A::SparseMatrixCSC, B::SparseVector) = Factorization(A)\B
 """
