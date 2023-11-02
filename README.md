@@ -1,6 +1,13 @@
 # SparseSparse
 
-## Author: Sébastien Loisel
+### Author: Sébastien Loisel
+
+## Installation
+```julia
+using Pkg; Pkg.add(url="https://github.com/sloisel/SparseSparse")
+```
+
+# Introduction
 
 We say that a matrix $A$ is **morally block diagonal** if there are permutation matrices $P$ and $Q$ such that $PAQ$ is block diagonal. Morally block diagonal matrices are sparse and also have a sparse inverse. `SparseSparse` is a package that inverts sparse matrices with sparse inverses, or otherwise solve sparse linear problems with sparse right-hand-sides.
 
