@@ -15,9 +15,11 @@ With stock Julia, here is what happens if you try to invert a sparse matrix:
 
 ```julia
 julia> using LinearAlgebra, SparseArrays
-       A = blockdiag([sparse(randn(2,2)) for k=1:2]...)
+       A = sparse([2 3 0 0
+                   4 5 0 0
+                   0 0 6 7
+                   0 0 8 9.0])
        inv(A)
-
 The inverse of a sparse matrix can often be dense and can cause the computer to run out of memory[...]
 
 Stacktrace:
@@ -32,10 +34,10 @@ julia> using SparseSparse
        inv(A)
 
 4×4 SparseMatrixCSC{Float64, Int64} with 8 stored entries:
-  5.66133   1.74103    ⋅           ⋅ 
- -1.86901  -1.58863    ⋅           ⋅ 
-   ⋅         ⋅       -0.0822329  -0.571433
-   ⋅         ⋅       -1.43786     0.579231
+ -2.5   1.5    ⋅     ⋅ 
+  2.0  -1.0    ⋅     ⋅ 
+   ⋅     ⋅   -4.5   3.5
+   ⋅     ⋅    4.0  -3.0
 ```
  
 The implementation is based on `SparseSparse.Factorization`:
