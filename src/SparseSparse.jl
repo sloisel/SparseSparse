@@ -181,9 +181,9 @@ function Base.:\(A::Factorization, B::SparseMatrixCSC)
 end
 
 """
-Base.:\\(A::Factorization, B::SparseVector) = A\\SparseMatrixCSC(B)
+Base.:\\(A::Factorization, B::SparseVector) = SparseVector(A\\SparseMatrixCSC(B))
 """
-Base.:\(A::Factorization, B::SparseVector) = A\SparseMatrixCSC(B)
+Base.:\(A::Factorization, B::SparseVector) = SparseVector(A\SparseMatrixCSC(B))
 
 """
 Base.:\\(A::SparseMatrixCSC, B::SparseMatrixCSC) = Factorization(A)\\B
