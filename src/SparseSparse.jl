@@ -94,8 +94,6 @@ function solvemat(L::SparseMatrixCSC{Tv,Ti},B::SparseMatrixCSC{Tv,Ti};lowertrian
     RV = Vector{Ti}(undef,N)
     NZ = Vector{Tv}(undef,N)
     x = zeros(Tv,L.n)
-    CJ = zeros(Ti,L.n)
-    mark = falses(L.n)
     for i = 1:B.n
         p = cp[i]
         q = cp[i+1]-1
