@@ -24,4 +24,7 @@ using LinearAlgebra, SparseArrays
     Q = randperm(size(A,2))
     U = A[P,Q]
     @test norm(U\U-I)<tol
+    b = sparse(randn(size(A,1)))
+    x = A\b
+    @test norm(b-A*x)<tol
 end

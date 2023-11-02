@@ -138,7 +138,7 @@ end
 
 struct Factorization L; U; p; q end
 """
-    function Factorization(A::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti<:Integer}
+    function Factorization(A::SparseMatrixCSC)
 
 Compute a sparse factorization of the sparse matrix `A`. This returns a `Factorization` object `F` with fields `F.L`, `F.U`, `F.p`, `F.q`. The fields `L` and `U` are sparse lower and upper triangular matrices, and `p` and `q` are permutation vectors. Any of these fields can be replaced by the value `missing`.
 """
@@ -161,32 +161,41 @@ function Factorization(A::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti<:Integer}
         F = lu(A)
         R = spdiagm(0=>1 ./F.Rs[F.p])
         p = (F.p==1:length(F.p)) ? missing : F.p
-        q = (F.q==1:length(F.q)) ? missing : F.q
+        q = (F.q==1:length(F.q)) ? missing : invperm(F.q)
         return Factorization((R*F.L),(F.U),p,q)
     end
     error("QR decomposition unimplemented")
 end
 
 """
-    function Base.:\\(A::Factorization, B::SparseMatrixCSC{Tv,Ti}) where {Tv, Ti<:Integer}
+    function Base.:\\(A::Factorization, B::SparseMatrixCSC)
 
 Solve the problem `A*X=B` for the unknown `X`, where `A` is a Factorization object and `B` is sparse.
 """
-function Base.:\(A::Factorization, B::SparseMatrixCSC{Tv,Ti}) where {Tv, Ti<:Integer}
+function Base.:\(A::Factorization, B::SparseMatrixCSC)
     if !ismissing(A.p) B = B[A.p,:]                           end
     if !ismissing(A.L) B = solve(A.L,B;lowertriangular=true)  end
     if !ismissing(A.U) B = solve(A.U,B;lowertriangular=false) end
-    if !ismissing(A.q) B = B[:,A.q]                           end
+    if !ismissing(A.q) B = B[A.q,:]                           end
     return B
 end
 
 """
-Base.:\\(A::SparseMatrixCSC{Tv,Ti}, B::SparseMatrixCSC{Tv,Ti}) where {Tv, Ti<:Integer} = Factorization(A)\\B
+Base.:\\(A::Factorization, B::SparseVector) = A\\SparseMatrixCSC(B)
 """
-Base.:\(A::SparseMatrixCSC{Tv,Ti}, B::SparseMatrixCSC{Tv,Ti}) where {Tv, Ti<:Integer} = Factorization(A)\B
+Base.:\(A::Factorization, B::SparseVector) = A\SparseMatrixCSC(B)
+
 """
-Base.inv(A::SparseMatrixCSC{Tv,Ti}) where {Tv, Ti<:Integer} = A\\spdiagm(0=>ones(size(A,1)))
+Base.:\\(A::SparseMatrixCSC, B::SparseMatrixCSC) = Factorization(A)\\B
 """
-Base.inv(A::SparseMatrixCSC{Tv,Ti}) where {Tv, Ti<:Integer} = A\spdiagm(0=>ones(size(A,1)))
+Base.:\(A::SparseMatrixCSC, B::SparseMatrixCSC) = Factorization(A)\B
+"""
+Base.:\\(A::SparseMatrixCSC{Tv,Ti}, B::SparseVector) = Factorization(A)\\B
+"""
+Base.:\(A::SparseMatrixCSC, B::SparseVector) = Factorization(A)\B
+"""
+Base.inv(A::SparseMatrixCSC) = A\\spdiagm(0=>ones(size(A,1)))
+"""
+Base.inv(A::SparseMatrixCSC) = A\spdiagm(0=>ones(size(A,1)))
 
 end
