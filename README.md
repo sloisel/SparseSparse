@@ -115,12 +115,12 @@ Such matrices have a complete algebra of operations; we can add, subtract and mu
 This is related to Hierarchical matrices (see the book by Hackbusch). Consider a matrix
 
 $$\left[\begin{array}{cc}
-X & Y \\ Z & W
+X & Y \\\ Z & W
 \end{array}
 \right]
 \approx
 \left[\begin{array}{cc}
-X & U_1 S_1 V_1 \\ U_2 S_2 V_2 & W
+X & U_1 S_1 V_1 \\\ U_2 S_2 V_2 & W
 \end{array}
 \right].$$
 
