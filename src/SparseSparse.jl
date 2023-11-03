@@ -37,7 +37,6 @@ function transitiveclosure(L::SparseMatrixCSC{Tv,Ti},Jlen,CJ,mark;countonly=fals
     return c
 end
 function solvevec(L::SparseMatrixCSC{Tv,Ti},lowertriangular,x::Vector{Tv},J,CJ,mark) where {Tv,Ti<:Integer}
-    n = L.n
     m = length(J)
     for i=1:m
         CJ[i] = J[i]
@@ -56,9 +55,11 @@ function solvevec(L::SparseMatrixCSC{Tv,Ti},lowertriangular,x::Vector{Tv},J,CJ,m
         p = cp[j]
         q = cp[j+1]-1
         if lowertriangular
+            @assert rv[p]==j
             x[j] /= nz[p]
             p+=1
         else
+            @assert rv[q]==j
             x[j] /= nz[q]
             q-=1
         end
@@ -73,24 +74,20 @@ function solvemat(L::SparseMatrixCSC{Tv,Ti},B::SparseMatrixCSC{Tv,Ti};lowertrian
     cp = B.colptr
     rv = B.rowval
     nz = B.nzval
-    Ns = Vector{Ti}(undef,B.n)
-    CJ = zeros(Ti,L.n)
-    mark = falses(L.n)
-    for i in 1:B.n
-        p = cp[i]
-        q = cp[i+1]-1
-        Jlen = q-p+1
-        for j=1:Jlen
-            CJ[j]=rv[j+p-1]
-        end
-        Ns[i]=transitiveclosure(L,Jlen,CJ,mark,countonly=true)
-    end
-    N = sum(Ns)
     CP = Vector{Ti}(undef,B.n+1)
     CP[1] = 1
-    for i=1:B.n
-        CP[i+1] = CP[i]+Ns[i]
+    CJ = Vector{Ti}(undef,L.n)
+    mark = falses(L.n)
+    for i in 1:B.n
+        p = cp[i]-1
+        q = cp[i+1]-1
+        Jlen = q-p
+        for j=1:Jlen
+            CJ[j]=rv[j+p]
+        end
+        CP[i+1]=CP[i]+transitiveclosure(L,Jlen,CJ,mark,countonly=true)
     end
+    N = CP[end]-1
     RV = Vector{Ti}(undef,N)
     NZ = Vector{Tv}(undef,N)
     x = zeros(Tv,L.n)
@@ -98,27 +95,39 @@ function solvemat(L::SparseMatrixCSC{Tv,Ti},B::SparseMatrixCSC{Tv,Ti};lowertrian
         p = cp[i]
         q = cp[i+1]-1
         J = view(rv,p:q)
+        p -= 1
         for j=1:length(J)
-            x[J[j]] = nz[p+j-1]
+            x[J[j]] = nz[j+p]
         end
         d = solvevec(L,lowertriangular,x,J,CJ,mark)
         c = CP[i]-1
         for j=1:d
-            RV[c+j] = CJ[j]
-            NZ[c+j] = x[CJ[j]]
+            k = CJ[j]
+            RV[c+j] = k
+            NZ[c+j] = x[k]
             x[CJ[j]] = 0
         end
     end
     SparseMatrixCSC{Tv,Ti}(B.m,B.n,CP,RV,NZ)
 end
+@enum SolveMode lower=1 upper=2 detect=3
 """
-    function solve(L::SparseMatrixCSC{Tv,Ti},B::SparseMatrixCSC{Tv,Ti};lowertriangular=true,numthreads=min(B.n,nthreads())) where {Tv,Ti<:Integer}
+    function solve(L::SparseMatrixCSC{Tv,Ti},B::SparseMatrixCSC{Tv,Ti};solvemode=detect,numthreads=min(B.n,nthreads())) where {Tv,Ti<:Integer}
 
-Solve `L*X=B` for the unknown `X`, where `L` and `B` are sparse matrices. `L` should be either lower or upper triangular. If `numthreads>1` then multithreading is used.
+Solve `L*X=B` for the unknown `X`, where `L` and `B` are sparse matrices. `L` should be either lower or upper triangular. If `numthreads>1` then multithreading is used. `solvemode` should be either `lower`, `upper` or `detect`.
 """
-function solve(L::SparseMatrixCSC{Tv,Ti},B::SparseMatrixCSC{Tv,Ti};lowertriangular=true,numthreads=min(B.n,nthreads())) where {Tv,Ti<:Integer}
+function solve(L::SparseMatrixCSC{Tv,Ti},B::SparseMatrixCSC{Tv,Ti};solvemode=detect,numthreads=min(B.n,nthreads())) where {Tv,Ti<:Integer}
+    if solvemode==detect
+        if istril(L)
+            solvemode=lower
+        elseif istriu(L)
+            solvemode=upper
+        else
+            error("`solve` can only be used on lower or upper triangular matrices")
+        end
+    end
     if numthreads==1
-        return solvemat(L,B;lowertriangular)
+        return solvemat(L,B;lowertriangular=(solvemode==lower))
     end
     ret = Array{SparseMatrixCSC{Tv,Ti}}(undef,numthreads)
     dk = B.n/numthreads
@@ -129,7 +138,7 @@ function solve(L::SparseMatrixCSC{Tv,Ti},B::SparseMatrixCSC{Tv,Ti};lowertriangul
         ks[j] = a:b
     end
     @threads for j=1:numthreads
-        ret[j] = solvemat(L,B[:,ks[j]];lowertriangular)
+        ret[j] = solvemat(L,B[:,ks[j]];lowertriangular=(solvemode==lower))
     end
     return hcat(ret...)
 end
@@ -171,29 +180,16 @@ end
 Solve the problem `A*X=B` for the unknown `X`, where `A` is a Factorization object and `B` is sparse.
 """
 function Base.:\(A::Factorization, B::SparseMatrixCSC)
-    if !ismissing(A.p) B = B[A.p,:]                           end
-    if !ismissing(A.L) B = solve(A.L,B;lowertriangular=true)  end
-    if !ismissing(A.U) B = solve(A.U,B;lowertriangular=false) end
-    if !ismissing(A.q) B = B[A.q,:]                           end
+    if !ismissing(A.p) B = B[A.p,:]                     end
+    if !ismissing(A.L) B = solve(A.L,B;solvemode=lower) end
+    if !ismissing(A.U) B = solve(A.U,B;solvemode=upper) end
+    if !ismissing(A.q) B = B[A.q,:]                     end
     return B
 end
 
-"""
-Base.:\\(A::Factorization, B::SparseVector) = SparseVector(A\\SparseMatrixCSC(B))
-"""
 Base.:\(A::Factorization, B::SparseVector) = SparseVector(A\SparseMatrixCSC(B))
-
-"""
-Base.:\\(A::SparseMatrixCSC, B::SparseMatrixCSC) = Factorization(A)\\B
-"""
 Base.:\(A::SparseMatrixCSC, B::SparseMatrixCSC) = Factorization(A)\B
-"""
-Base.:\\(A::SparseMatrixCSC, B::SparseVector) = Factorization(A)\\B
-"""
 Base.:\(A::SparseMatrixCSC, B::SparseVector) = Factorization(A)\B
-"""
-Base.inv(A::SparseMatrixCSC) = A\\spdiagm(0=>ones(size(A,1)))
-"""
 Base.inv(A::SparseMatrixCSC) = A\spdiagm(0=>ones(size(A,1)))
 
 end

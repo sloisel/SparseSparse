@@ -15,10 +15,10 @@ With stock Julia, here is what happens if you try to invert a sparse matrix:
 
 ```julia
 julia> using LinearAlgebra, SparseArrays
-       A = sparse([2 3 0 0
-                   4 5 0 0
-                   0 0 6 7
-                   0 0 8 9.0])
+       A = sparse([2.0  3.0  0.0  0.0
+                   4.0  5.0  0.0  0.0
+                   0.0  0.0  6.0  7.0
+                   0.0  0.0  8.0  9.0])
        inv(A)
 The inverse of a sparse matrix can often be dense and can cause the computer to run out of memory[...]
 
@@ -52,16 +52,16 @@ struct Factorization L; U; p; q end
 Fields `L` and `U` are sparse lower and upper triangular matrices, and vectors `p` and `q` are permutations.
 All these fields are optional and may take on the value `missing` when that particular term is omitted. Factorizations can be used to solve linear problems via
 ```julia
-function Base.:\(A::Factorization, B::SparseMatrixCSC{Tv,Ti}) where {Tv, Ti<:Integer}
+function Base.:\(A::Factorization, B::SparseMatrixCSC)
 ```
 
 The underlying LU decomposition is computed using the stdlib's `lu` (or `ldlt` or `cholesky`). The problem is that stdlib refuses to compute `L\B` when `B` is itself sparse. The core of module `SparseSparse` is the following function:
 
 ```julia
-function solve(L::SparseMatrixCSC{Tv,Ti},B::SparseMatrixCSC{Tv,Ti};lowertriangular=true,numthreads=min(B.n,nthreads())) where {Tv,Ti<:Integer}
+function solve(L::SparseMatrixCSC{Tv,Ti},B::SparseMatrixCSC{Tv,Ti};solvemode=detect,numthreads=min(B.n,nthreads())) where {Tv,Ti<:Integer}
 ```
 
-This function is able to solve lower or upper triangular sparse systems with sparse right-hand-sides. The algorithm is similar to the one described in Tim Davis's book and implemented in SuiteSparse [here](https://github.com/DrTimothyAldenDavis/SuiteSparse/blob/dev/CXSparse/Source/cs_spsolve.c). The `SparseSparse` implementation also uses multithreading to speed up the solution time.
+This function is able to solve lower or upper triangular sparse systems with sparse right-hand-sides. The algorithm is similar to the one described in Tim Davis's book and implemented in SuiteSparse [here](https://github.com/DrTimothyAldenDavis/SuiteSparse/blob/dev/CXSparse/Source/cs_spsolve.c). The `SparseSparse` implementation also uses multithreading to speed up the solution time. The parameter `solvemode` should be either `lower=1`, `upper=2` or `detect=3`.
 
 # Benchmarks
 
