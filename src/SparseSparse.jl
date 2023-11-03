@@ -50,6 +50,7 @@ function solvevec(L::SparseMatrixCSC{Tv,Ti},lowertriangular,x::Vector{Tv},J,CJ,m
     else
         (a,b,dir) = (c,1,-1)
     end
+    r = 0
     for i=a:dir:b
         j = CJ[i]
         p = cp[j]
@@ -186,10 +187,15 @@ function Base.:\(A::Factorization, B::SparseMatrixCSC)
     if !ismissing(A.q) B = B[A.q,:]                     end
     return B
 end
-
 Base.:\(A::Factorization, B::SparseVector) = SparseVector(A\SparseMatrixCSC(B))
 Base.:\(A::SparseMatrixCSC, B::SparseMatrixCSC) = Factorization(A)\B
 Base.:\(A::SparseMatrixCSC, B::SparseVector) = Factorization(A)\B
+Base.transpose(A::Factorization) = Factorization(ismissing(A.U) ? missing : sparse(transpose(A.U)),
+                                                 ismissing(A.L) ? missing : sparse(transpose(A.L)),
+                                                 ismissing(A.q) ? missing : invperm(A.q),
+                                                 ismissing(A.p) ? missing : invperm(A.p))
+Base.:/(A::SparseMatrixCSC, B::Factorization) = sparse(transpose(B)\sparse(transpose(A)))
+Base.:/(A::SparseMatrixCSC, B::SparseMatrixCSC) = A/Factorization(B)
 Base.inv(A::SparseMatrixCSC) = A\spdiagm(0=>ones(size(A,1)))
 
 end
