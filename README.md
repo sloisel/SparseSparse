@@ -9,7 +9,7 @@ using Pkg; Pkg.add(url="https://github.com/sloisel/SparseSparse")
 
 # Introduction
 
-We say that a matrix $A$ is **morally block diagonal** if there are permutation matrices $P$ and $Q$ such that $PAQ$ is block diagonal. Morally block diagonal matrices are sparse and also have a sparse inverse. `SparseSparse` is a package that inverts sparse matrices with sparse inverses, or otherwise solve sparse linear problems with sparse right-hand-sides.
+We say that a matrix $A$ is **doubly sparse** if both $A$ and $A^{-1}$ are sparse. The class of doubly sparse matrices includes all matrices of the form $P(\prod B_k) Q$ where $P,Q$ are permutations and $B_k$ are block diagonal. `SparseSparse` is a package that inverts sparse matrices with sparse inverses, or otherwise solve sparse linear problems with sparse right-hand-sides.
 
 With stock Julia, here is what happens if you try to invert a sparse matrix:
 
@@ -65,7 +65,7 @@ This function is able to solve lower or upper triangular sparse systems with spa
 
 # Benchmarks
 
-Here is a numerical experiment, calculating the inverse of a **morally block diagonal matrix.**
+Here is a numerical experiment, calculating the inverse of a **doubly sparse matrix.**
 
 ```julia
 julia> using Random
@@ -147,6 +147,4 @@ julia> n = 4
   0.0   0.0  -1.0   2.0
 ```
 In this case, the $H$-matrix representation of $A$ happens to be exact.
-
-The initial block structure of $H$ and Woodbury matrices is sometimes simple, although for PDEs in dimension $d \geq 2$, the various matrices will not be directly block diagonal, but instead will be block diagonal only after a certain permutation, i.e. the blocks will be **"morally block diagonal"**. The block structure can become much more complicated if the full algebra of operations is used on these matrices. Nevertheless, because the matrix $A$ of the Woodbury form is usually morally block diagonal, its inverse can be computed easily. Practically, it may be hard to detect the permutation that makes $A$ block diagonal. The `SparseSparse` module gets around this problem by finding the sparse inverse of any morally block diagonal matrix.
 
