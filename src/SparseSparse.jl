@@ -201,18 +201,12 @@ Base.:/(A::SparseMatrixCSC{Tv,Ti}, B::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti<:Inte
 Base.inv(A::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti<:Integer} = A\spdiagm(0=>ones(Tv,size(A,1)))
 
 function precompilationworkload()
-    A = sparse(randn(Float64,2,2))
-    inv(A)
-    A\A
-    A/A
-    b = sparse(randn(Float64,2))
-    A\b
-    A = sparse(randn(ComplexF64,2,2))
-    inv(A)
-    A\A
-    A/A
-    b = sparse(randn(ComplexF64,2))
-    A\b
+    A = sparse([1.0 2.0;3.0 4.0])
+    b = sparse([1.0,2.0])
+    inv(A); A\A; A/A; A\b
+    A = sparse([1.0+2.0im 3.0+4.0im;5.0+6.0im 7.0+8.0im])
+    b = sparse([1.0+2.0im,3.0+4.0im])
+    inv(A); A\A; A/A; A\b
     return missing
 end
 precompilationworkload()
