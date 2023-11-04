@@ -3,7 +3,7 @@ module SparseSparse
 export Factorization,solve
 
 using SparseArrays, LinearAlgebra
-using Base.Threads: nthreads, @threads, @spawn
+using Base.Threads: nthreads, @threads
 
 function transitiveclosure(L::SparseMatrixCSC{Tv,Ti},Jlen,CJ,mark;countonly=false) where {Tv,Ti<:Integer}
     b = 0
@@ -131,16 +131,21 @@ function solve(L::SparseMatrixCSC{Tv,Ti},B::SparseMatrixCSC{Tv,Ti};solvemode=det
         return solvemat(L,B;lowertriangular=(solvemode==lower))
     end
     dk = B.n/numthreads
-    tasks = Array{Task}(undef,numthreads)
-    for j=1:numthreads
+    X = Array{SparseMatrixCSC{Tv,Ti}}(undef,numthreads)
+    @threads for j=1:numthreads
         a = (j==1) ? 1 : (Int(floor(j*dk)+1))
         b = (j==numthreads) ? B.n : Int(floor((j+1)*dk))
-        tasks[j] = @spawn solvemat(L,B[:,a:b];lowertriangular=(solvemode==lower))
+        X[j] = solvemat(L,B[:,a:b];lowertriangular=(solvemode==lower))
     end
-    return hcat((fetch.(tasks))...)
+    return hcat(X...)
 end
 
-struct Factorization L; U; p; q end
+struct Factorization 
+    L::Union{Missing,SparseMatrixCSC}
+    U::Union{Missing,SparseMatrixCSC}
+    p::Union{Missing,Vector}
+    q::Union{Missing,Vector}
+end
 """
     function Factorization(A::SparseMatrixCSC)
 
