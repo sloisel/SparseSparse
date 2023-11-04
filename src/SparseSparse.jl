@@ -200,4 +200,20 @@ Base.:/(A::SparseMatrixCSC{Tv,Ti}, B::Factorization{Tv,Ti}) where {Tv,Ti<:Intege
 Base.:/(A::SparseMatrixCSC{Tv,Ti}, B::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti<:Integer} = A/Factorization(B)
 Base.inv(A::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti<:Integer} = A\spdiagm(0=>ones(Tv,size(A,1)))
 
+function precompilationworkload()
+    A = sparse(randn(Float64,2,2))
+    inv(A)
+    A\A
+    A/A
+    b = sparse(randn(Float64,2))
+    A\b
+    A = sparse(randn(ComplexF64,2,2))
+    inv(A)
+    A\A
+    A/A
+    b = sparse(randn(ComplexF64,2))
+    A\b
+    return missing
+end
+precompilationworkload()
 end

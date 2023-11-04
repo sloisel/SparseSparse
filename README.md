@@ -47,7 +47,12 @@ SparseSparse.Factorization(...)
 ```
 The `Factorization` object is as follows:
 ```julia
-struct Factorization L; U; p; q end
+struct Factorization{Tv,Ti<:Integer} 
+    L::Union{Missing,SparseMatrixCSC{Tv,Ti}}
+    U::Union{Missing,SparseMatrixCSC{Tv,Ti}}
+    p::Union{Missing,Vector{Ti}}
+    q::Union{Missing,Vector{Ti}}
+end
 ```
 Fields `L` and `U` are sparse lower and upper triangular matrices, and vectors `p` and `q` are permutations.
 All these fields are optional and may take on the value `missing` when that particular term is omitted. Factorizations can be used to solve linear problems via
