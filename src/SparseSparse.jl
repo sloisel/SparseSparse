@@ -152,6 +152,7 @@ end
 Compute a sparse factorization of the sparse matrix `A`. This returns a `Factorization` object `F` with fields `F.L`, `F.U`, `F.p`, `F.q`. The fields `L` and `U` are sparse lower and upper triangular matrices, and `p` and `q` are permutation vectors. Any of these fields can be replaced by the value `missing`.
 """
 function Factorization(A::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti<:Integer}
+    @assert Tv==Float64 || Tv==ComplexF64
     if size(A,1)==size(A,2)
         if istril(A) return Factorization(A,missing,missing,missing) end
         if istriu(A) return Factorization(missing,A,missing,missing) end
