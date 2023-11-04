@@ -4,14 +4,17 @@ using Random
 using LinearAlgebra, SparseArrays
 
 @testset "SparseSparse.jl" begin
-    n = 100
+    n = 15
     m = 10
     tol = 1e-11
     Random.seed!(1234)
     A = blockdiag([sparse(randn(m,m)) for k=1:n]...)
-    @test norm(A\A-I)<tol
-    @test norm(A/A-I)<tol
-    @test norm(inv(A)*A-I)<tol
+    B = blockdiag([sparse(randn(n,n)) for k=1:m]...)
+    C = Matrix(A)\Matrix(B)
+    D = Matrix(A)/Matrix(B)
+    @test norm(A\B-C)<tol
+    @test norm(A/B-D)<tol
+    @test norm(inv(A)*B-C)<tol
     @test norm(tril(A)\tril(A)-I)<tol
     @test norm(tril(A)/tril(A)-I)<tol
     @test norm(triu(A)\triu(A)-I)<tol

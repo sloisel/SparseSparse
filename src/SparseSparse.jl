@@ -195,7 +195,7 @@ Base.transpose(A::Factorization) = Factorization(ismissing(A.U) ? missing : spar
                                                  ismissing(A.L) ? missing : sparse(transpose(A.L)),
                                                  ismissing(A.q) ? missing : invperm(A.q),
                                                  ismissing(A.p) ? missing : invperm(A.p))
-Base.:/(A::SparseMatrixCSC{Tv,Ti}, B::Factorization{Tv,Ti}) where {Tv,Ti<:Integer} = sparse(transpose(B)\sparse(transpose(A)))
+Base.:/(A::SparseMatrixCSC{Tv,Ti}, B::Factorization{Tv,Ti}) where {Tv,Ti<:Integer} = sparse(transpose(transpose(B)\sparse(transpose(A))))
 Base.:/(A::SparseMatrixCSC{Tv,Ti}, B::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti<:Integer} = A/Factorization(B)
 Base.inv(A::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti<:Integer} = A\spdiagm(0=>ones(Tv,size(A,1)))
 
