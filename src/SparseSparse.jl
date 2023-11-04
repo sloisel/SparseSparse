@@ -140,11 +140,11 @@ function solve(L::SparseMatrixCSC{Tv,Ti},B::SparseMatrixCSC{Tv,Ti};solvemode=det
     return hcat(X...)
 end
 
-struct Factorization 
-    L::Union{Missing,SparseMatrixCSC}
-    U::Union{Missing,SparseMatrixCSC}
-    p::Union{Missing,Vector}
-    q::Union{Missing,Vector}
+struct Factorization{Tv,Ti<:Integer} 
+    L::Union{Missing,SparseMatrixCSC{Tv,Ti}}
+    U::Union{Missing,SparseMatrixCSC{Tv,Ti}}
+    p::Union{Missing,Vector{Ti}}
+    q::Union{Missing,Vector{Ti}}
 end
 """
     function Factorization(A::SparseMatrixCSC)
@@ -181,22 +181,22 @@ end
 
 Solve the problem `A*X=B` for the unknown `X`, where `A` is a Factorization object and `B` is sparse.
 """
-function Base.:\(A::Factorization, B::SparseMatrixCSC)
+function Base.:\(A::Factorization{Tv,Ti}, B::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti<:Integer}
     if !ismissing(A.p) B = B[A.p,:]                     end
     if !ismissing(A.L) B = solve(A.L,B;solvemode=lower) end
     if !ismissing(A.U) B = solve(A.U,B;solvemode=upper) end
     if !ismissing(A.q) B = B[A.q,:]                     end
     return B
 end
-Base.:\(A::Factorization, B::SparseVector) = SparseVector(A\SparseMatrixCSC(B))
-Base.:\(A::SparseMatrixCSC, B::SparseMatrixCSC) = Factorization(A)\B
-Base.:\(A::SparseMatrixCSC, B::SparseVector) = Factorization(A)\B
+Base.:\(A::Factorization{Tv,Ti}, B::SparseVector{Tv,Ti}) where {Tv,Ti<:Integer} = SparseVector(A\SparseMatrixCSC(B))
+Base.:\(A::SparseMatrixCSC{Tv,Ti}, B::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti<:Integer} = Factorization(A)\B
+Base.:\(A::SparseMatrixCSC{Tv,Ti}, B::SparseVector{Tv,Ti}) where {Tv,Ti<:Integer} = Factorization(A)\B
 Base.transpose(A::Factorization) = Factorization(ismissing(A.U) ? missing : sparse(transpose(A.U)),
                                                  ismissing(A.L) ? missing : sparse(transpose(A.L)),
                                                  ismissing(A.q) ? missing : invperm(A.q),
                                                  ismissing(A.p) ? missing : invperm(A.p))
-Base.:/(A::SparseMatrixCSC, B::Factorization) = sparse(transpose(B)\sparse(transpose(A)))
-Base.:/(A::SparseMatrixCSC, B::SparseMatrixCSC) = A/Factorization(B)
-Base.inv(A::SparseMatrixCSC) = A\spdiagm(0=>ones(size(A,1)))
+Base.:/(A::SparseMatrixCSC{Tv,Ti}, B::Factorization{Tv,Ti}) where {Tv,Ti<:Integer} = sparse(transpose(B)\sparse(transpose(A)))
+Base.:/(A::SparseMatrixCSC{Tv,Ti}, B::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti<:Integer} = A/Factorization(B)
+Base.inv(A::SparseMatrixCSC{Tv,Ti}) where {Tv,Ti<:Integer} = A\spdiagm(0=>ones(Tv,size(A,1)))
 
 end
