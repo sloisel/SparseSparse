@@ -37,6 +37,7 @@ function transitiveclosure(L::SparseMatrixCSC{Tv,Ti},Jlen,CJ,mark;countonly=fals
     return c
 end
 function solvevec(L::SparseMatrixCSC{Tv,Ti},lowertriangular,x::Vector{Tv},J,CJ,mark) where {Tv,Ti<:Integer}
+    @assert size(L,2)==length(x)
     m = length(J)
     for i=1:m
         CJ[i] = J[i]
@@ -50,7 +51,6 @@ function solvevec(L::SparseMatrixCSC{Tv,Ti},lowertriangular,x::Vector{Tv},J,CJ,m
     else
         (a,b,dir) = (c,1,-1)
     end
-    r = 0
     for i=a:dir:b
         j = CJ[i]
         p = cp[j]
@@ -72,6 +72,7 @@ function solvevec(L::SparseMatrixCSC{Tv,Ti},lowertriangular,x::Vector{Tv},J,CJ,m
     return c
 end
 function solvemat(L::SparseMatrixCSC{Tv,Ti},B::SparseMatrixCSC{Tv,Ti};lowertriangular=true) where {Tv,Ti<:Integer}
+    @assert size(L,2)==size(B,1)
     cp = B.colptr
     rv = B.rowval
     nz = B.nzval
