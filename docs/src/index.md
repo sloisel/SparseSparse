@@ -2,13 +2,7 @@
 CurrentModule = SparseSparse
 ```
 
-```@eval
-using Markdown
-using Pkg
-using SparseSparse
-v = string(pkgversion(SparseSparse))
-md"# SparseSparse $v"
-```
+# SparseSparse
 
 [SparseSparse](https://github.com/sloisel/SparseSparse) is a Julia package for inverting sparse matrices with sparse inverses, or solving sparse linear problems with sparse right-hand-sides.
 

@@ -8,10 +8,12 @@ using Documenter
 
 DocMeta.setdocmeta!(SparseSparse, :DocTestSetup, :(using SparseSparse); recursive=true)
 
+v = string(pkgversion(SparseSparse))
+
 makedocs(;
     modules=[SparseSparse],
     authors="Sébastien Loisel",
-    sitename="SparseSparse.jl",
+    sitename="SparseSparse.jl $v",
     format=Documenter.HTML(;
         canonical="https://sloisel.github.io/SparseSparse",
         edit_link="main",
