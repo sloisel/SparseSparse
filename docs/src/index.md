@@ -4,12 +4,12 @@ CurrentModule = SparseSparse
 
 # SparseSparse
 
-[SparseSparse](https://github.com/sloisel/SparseSparse) is a Julia package for inverting sparse matrices with sparse inverses, or solving sparse linear problems with sparse right-hand-sides.
+[SparseSparse](https://github.com/sloisel/SparseSparse.jl) is a Julia package for inverting sparse matrices with sparse inverses, or solving sparse linear problems with sparse right-hand-sides.
 
 ## Installation
 
 ```julia
-using Pkg; Pkg.add(url="https://github.com/sloisel/SparseSparse")
+using Pkg; Pkg.add("SparseSparse")
 ```
 
 ## Overview

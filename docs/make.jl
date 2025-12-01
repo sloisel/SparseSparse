@@ -15,7 +15,7 @@ makedocs(;
     authors="Sébastien Loisel",
     sitename="SparseSparse.jl $v",
     format=Documenter.HTML(;
-        canonical="https://sloisel.github.io/SparseSparse",
+        canonical="https://sloisel.github.io/SparseSparse.jl",
         edit_link="main",
         assets=String[],
     ),
@@ -25,6 +25,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/sloisel/SparseSparse",
+    repo="github.com/sloisel/SparseSparse.jl",
     devbranch="main",
 )
